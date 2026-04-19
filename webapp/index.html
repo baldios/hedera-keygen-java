@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Gestione Lavoro e Scadenze</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+      <button class="btn-icon sidebar-close" id="sidebarClose" aria-label="Chiudi menu">✕</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-filter="all">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Tutti i compiti</span>
+        <span class="nav-badge" id="badge-all"></span>
+      </a>
+      <a href="#" class="nav-item" data-filter="today">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Oggi</span>
+        <span class="nav-badge" id="badge-today"></span>
+      </a>
+      <a href="#" class="nav-item" data-filter="week">
+        <span class="nav-icon">🗓️</span>
+        <span class="nav-label">Questa settimana</span>
+        <span class="nav-badge" id="badge-week"></span>
+      </a>
+      <a href="#" class="nav-item" data-filter="overdue">
+        <span class="nav-icon">🔴</span>
+        <span class="nav-label">In ritardo</span>
+        <span class="nav-badge urgent" id="badge-overdue"></span>
+      </a>
+      <a href="#" class="nav-item" data-filter="high">
+        <span class="nav-icon">🔥</span>
+        <span class="nav-label">Alta priorità</span>
+        <span class="nav-badge" id="badge-high"></span>
+      </a>
+      <a href="#" class="nav-item" data-filter="done">
+        <span class="nav-icon">✅</span>
+        <span class="nav-label">Completati</span>
+        <span class="nav-badge" id="badge-done"></span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-notif" id="notifBtn">
+        <span id="notifIcon">🔔</span>
+        <span id="notifLabel">Abilita notifiche</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Main content -->
+  <main class="main">
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="btn-icon menu-toggle" id="menuToggle" aria-label="Apri menu">☰</button>
+      <h1 class="page-title" id="pageTitle">Tutti i compiti</h1>
+      <div class="topbar-actions">
+        <button class="btn-icon" id="themeToggle" aria-label="Cambia tema" title="Cambia tema">🌙</button>
+      </div>
+    </header>
+
+    <!-- Quick add bar -->
+    <section class="quick-add" id="quickAddSection">
+      <form class="quick-add-form" id="quickAddForm" autocomplete="off">
+        <input
+          type="text"
+          class="quick-add-input"
+          id="quickAddInput"
+          placeholder="Aggiungi nuovo compito... (Invio per salvare)"
+          maxlength="200"
+          required
+        />
+        <div class="quick-add-meta">
+          <div class="field-group">
+            <label class="field-label" for="quickDate">Scadenza</label>
+            <input type="date" class="field-input" id="quickDate" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="quickPriority">Priorità</label>
+            <select class="field-input" id="quickPriority">
+              <option value="none">—</option>
+              <option value="low">Bassa</option>
+              <option value="medium">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="quickCategory">Categoria</label>
+            <select class="field-input" id="quickCategory">
+              <option value="work">Lavoro</option>
+              <option value="personal">Personale</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-add">+ Aggiungi</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Sort / view controls -->
+    <div class="controls">
+      <div class="sort-group">
+        <label class="controls-label">Ordina:</label>
+        <select class="sort-select" id="sortSelect">
+          <option value="dueDate">Scadenza</option>
+          <option value="priority">Priorità</option>
+          <option value="created">Data creazione</option>
+          <option value="title">Titolo</option>
+        </select>
+      </div>
+      <div class="view-group">
+        <button class="btn-view active" id="viewList" title="Vista lista">☰</button>
+        <button class="btn-view" id="viewGrid" title="Vista griglia">⊞</button>
+      </div>
+    </div>
+
+    <!-- Task list -->
+    <section class="task-container" id="taskContainer">
+      <div class="task-list" id="taskList"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        <div class="empty-icon">📭</div>
+        <p class="empty-title">Nessun compito trovato</p>
+        <p class="empty-sub">Aggiungi un compito usando la barra qui sopra</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Modifica compito</h2>
+        <button class="btn-icon" id="modalClose" aria-label="Chiudi">✕</button>
+      </div>
+      <form class="modal-form" id="modalForm">
+        <input type="hidden" id="editId" />
+        <div class="form-group">
+          <label class="form-label" for="editTitle">Titolo *</label>
+          <input type="text" class="form-input" id="editTitle" maxlength="200" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editDesc">Descrizione</label>
+          <textarea class="form-input form-textarea" id="editDesc" rows="3" maxlength="1000"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="editDate">Scadenza</label>
+            <input type="date" class="form-input" id="editDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editPriority">Priorità</label>
+            <select class="form-input" id="editPriority">
+              <option value="none">Nessuna</option>
+              <option value="low">Bassa</option>
+              <option value="medium">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editCategory">Categoria</label>
+          <select class="form-input" id="editCategory">
+            <option value="work">Lavoro</option>
+            <option value="personal">Personale</option>
+            <option value="other">Altro</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="modalCancel">Annulla</button>
+          <button type="submit" class="btn-primary">Salva modifiche</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bottom-nav" id="bottomNav">
+    <a href="#" class="bottom-nav-item active" data-filter="all">
+      <span class="bottom-nav-icon">📋</span>
+      <span class="bottom-nav-label">Tutti</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-filter="today">
+      <span class="bottom-nav-icon">📅</span>
+      <span class="bottom-nav-label">Oggi</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-filter="overdue">
+      <span class="bottom-nav-icon">🔴</span>
+      <span class="bottom-nav-label">Ritardo</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-filter="high">
+      <span class="bottom-nav-icon">🔥</span>
+      <span class="bottom-nav-label">Urgenti</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-filter="done">
+      <span class="bottom-nav-icon">✅</span>
+      <span class="bottom-nav-label">Fatti</span>
+    </a>
+  </nav>
+
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
